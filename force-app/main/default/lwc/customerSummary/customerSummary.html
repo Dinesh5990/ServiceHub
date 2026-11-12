@@ -1,0 +1,59 @@
+<template>
+    <lightning-card title="Customer Summary">
+
+        <div class="slds-p-around_medium">
+
+           <template if:true={customer.data}>
+
+    <p>
+        <strong>Name:</strong> {customerName}
+    </p>
+
+    <p>
+        <strong>Email:</strong> {customerEmail}
+    </p>
+
+    <p>
+        <strong>Phone:</strong> {customerPhone}
+    </p>
+
+    <p>
+        <strong>City:</strong> {customerCity}
+    </p>
+
+    <div class="slds-m-top_medium">
+
+    <lightning-input
+    data-id="cityInput"
+    label="Update City"
+    value={newCity}
+    onchange={handleCityChange}>
+</lightning-input>
+
+    <lightning-button
+        class="slds-m-top_small"
+        label="Update City"
+        variant="brand"
+        onclick={handleUpdateCity}>
+    </lightning-button>
+
+</div>
+    <div class="slds-m-top_medium">
+        <lightning-button
+            label="View Customer Record"
+            variant="brand"
+            onclick={handleViewCustomer}>
+        </lightning-button>
+    </div>
+
+</template>
+
+            <template if:false={selectedCustomerId}>
+                <p>Select a customer to view the summary.</p>
+            </template>
+
+        </div>
+       
+
+    </lightning-card>
+</template>

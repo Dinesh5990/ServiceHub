@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningMessageChannel xmlns="http://soap.sforce.com/2006/04/metadata">
+    <masterLabel>Customer Selected</masterLabel>
+    <isExposed>true</isExposed>
+    <description>Publishes the selected customer in ServiceHub</description>
+
+    <lightningMessageFields>
+        <fieldName>customerId</fieldName>
+        <description>Selected Customer Id</description>
+    </lightningMessageFields>
+
+</LightningMessageChannel>

@@ -13,7 +13,8 @@
             </p>
 
         </div>
-        <c-customer-search></c-customer-search>
+        <c-customer-search oncustomerselect={handleCustomerSelect}></c-customer-search>
+        <c-customer-products customer-id={selectedCustomerId}></c-customer-products>
     </lightning-card>
 
 </template>

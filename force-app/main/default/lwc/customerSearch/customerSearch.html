@@ -24,6 +24,28 @@
 
         </div>
 
+        <template if:true={customers}>
+    <template for:each={customers} for:item="customer">
+
+        <div key={customer.Id} class="slds-m-top_medium">
+            <p>
+                <strong>{customer.Customer_Name__c}</strong>
+            </p>
+
+            <p>{customer.Email__c}</p>
+
+            <lightning-button
+                label="Select"
+                data-id={customer.Id}
+                onclick={handleSelect}>
+            </lightning-button>
+        </div>
+
+    </template>
+</template>
+
     </lightning-card>
+
+
 
 </template>

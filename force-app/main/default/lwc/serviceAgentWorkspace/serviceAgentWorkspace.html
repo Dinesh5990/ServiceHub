@@ -1,0 +1,162 @@
+<template>
+    <lightning-card title="Service Agent Workspace" icon-name="standard:service_resource">
+
+        <div class="slds-p-around_medium">
+
+            <h2 class="slds-text-heading_small slds-m-bottom_medium">
+                Service Requests
+            </h2>
+
+            <template if:true={serviceRequests}>
+                <template for:each={serviceRequests} for:item="request">
+
+                    <div key={request.id}
+                         class="slds-box slds-m-bottom_small">
+
+                        <p>
+                            <strong>Request:</strong> {request.name}
+                        </p>
+
+                        <p>
+                            <strong>Status:</strong> {request.status}
+                        </p>
+
+                        <template if:true={request.isNew}>
+    <lightning-button
+        label="Start Work"
+        variant="brand"
+        data-id={request.id}
+        onclick={handleStartWork}
+        class="slds-m-top_small">
+    </lightning-button>
+</template>
+
+<template if:true={request.isInProgress}>
+   <lightning-button
+    label="Complete Work"
+    variant="success"
+    data-id={request.id}
+    onclick={handleCompleteWork}
+    class="slds-m-top_small">
+</lightning-button>
+
+    <lightning-textarea
+    label="Work Comments"
+    value={request.workComments}
+    data-id={request.id}
+    onchange={handleWorkCommentsChange}
+    class="slds-m-top_small">
+</lightning-textarea>
+
+<lightning-button
+    label="Save Work Comments"
+    variant="brand"
+    data-id={request.id}
+    onclick={handleSaveWorkComments}
+    class="slds-m-top_small">
+</lightning-button>
+<lightning-input
+    type="checkbox"
+    label="Unlisted Part"
+    checked={isUnlistedPart}
+    onchange={handleUnlistedPartChange}
+    class="slds-m-top_small">
+</lightning-input>
+<template if:true={showCompatibleParts}>
+    <template if:true={compatibleParts.length}>
+        <lightning-combobox
+            name="compatiblePart"
+            label="Compatible Spare Part"   
+            placeholder="Select a spare part"
+            options={compatibleParts}
+            value={selectedPartId}
+            data-id={request.id}
+            onchange={handlePartChange}>
+        </lightning-combobox>
+    </template>
+</template>
+<template if:true={isUnlistedPart}>
+
+    <lightning-input
+        type="text"
+        label="Other Part Name"
+        value={otherPartName}
+        onchange={handleOtherPartNameChange}
+        required>
+    </lightning-input>
+
+    <lightning-textarea
+        label="Other Part Description"
+        value={otherPartDescription}
+        onchange={handleOtherPartDescriptionChange}
+        class="slds-m-top_small">
+    </lightning-textarea>
+
+    <lightning-input
+        type="number"
+        label="Unit Price"
+        value={unlistedUnitPrice}
+        min="0"
+        step="0.01"
+        onchange={handleUnlistedPriceChange}
+        required
+        class="slds-m-top_small">
+    </lightning-input>
+
+</template>
+<lightning-input
+    type="number"
+    label="Quantity"
+    value={partQuantity}
+    min="1"
+    step="1"
+    onchange={handleQuantityChange}
+    class="slds-m-top_small">
+</lightning-input>
+
+<lightning-button
+    label="Add Part"
+    variant="brand"
+    data-id={request.id}
+    onclick={handleAddPart}
+    class="slds-m-top_small">
+</lightning-button>
+
+<template if:true={createdServiceRequestPartId}>
+
+    <div class="slds-m-top_medium">
+
+        <lightning-file-upload
+            label="Upload Part Files"
+            name="partFileUploader"
+            record-id={createdServiceRequestPartId}
+            accept=".jpg,.jpeg,.png,.pdf"
+            multiple
+            onuploadfinished={handleUploadFinished}>
+        </lightning-file-upload>
+
+        <p class="slds-text-body_small slds-m-top_x-small">
+            Upload damaged-part photos, replacement-part photos,
+            invoices, or service documents.
+        </p>
+
+    </div>
+
+</template>
+</template>
+
+                    </div>
+
+                </template>
+            </template>
+
+            <template if:true={error}>
+                <p class="slds-text-color_error">
+                    Unable to load Service Requests.
+                </p>
+            </template>
+
+        </div>
+
+    </lightning-card>
+</template>

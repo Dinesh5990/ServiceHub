@@ -1,0 +1,427 @@
+<template>
+    <lightning-card title="Customer Products">
+
+        <div class="slds-p-around_medium">
+
+            <!-- No customer selected -->
+            <template if:false={hasCustomer}>
+                <p>Please select a customer to view registered products.</p>
+            </template>
+
+            <!-- Customer selected -->
+            <template if:true={hasCustomer}>
+                <div class="slds-m-bottom_medium">
+    <lightning-button
+        label="Add Product"
+        variant="brand"
+        onclick={handleAddProduct}>
+    </lightning-button>
+</div>
+<template if:true={showServiceRequestForm}>
+
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="service-modal-heading"
+        class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+                <h2
+                    id="service-modal-heading"
+                    class="slds-text-heading_medium">
+                    Create Service Request
+                </h2>
+            </header>
+
+            <lightning-record-edit-form
+                object-api-name="Service_Request__c"
+                onsubmit={handleServiceSubmit}
+                onsuccess={handleServiceSuccess}
+                onerror={handleServiceError}>
+
+                <div class="slds-modal__content slds-p-around_medium">
+
+                    <lightning-input-field
+                        field-name="Issue_Description__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Priority__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Status__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Requested_Date__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Assigned_Agent__c">
+                    </lightning-input-field>
+
+                </div>
+
+                <footer class="slds-modal__footer">
+
+                    <lightning-button
+                        label="Cancel"
+                        onclick={handleServiceCancel}>
+                    </lightning-button>
+
+                    <lightning-button
+                        class="slds-m-left_small"
+                        label="Create Request"
+                        variant="brand"
+                        type="submit">
+                    </lightning-button>
+
+                </footer>
+
+            </lightning-record-edit-form>
+
+        </div>
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
+<template if:true={showAddProductForm}>
+
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="modal-heading"
+        class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+                <h2
+                    id="modal-heading"
+                    class="slds-text-heading_medium">
+                    Add Product
+                </h2>
+            </header>
+
+            <lightning-record-edit-form
+                object-api-name="Customer_Product__c"
+                onsubmit={handleSubmit}
+                onsuccess={handleSuccess}
+                onerror={handleFormError}>
+
+                <div class="slds-modal__content slds-p-around_medium">
+
+                    <lightning-input-field
+                        field-name="Product_c__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Serial_Number__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Product_Status__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Purchase_Date__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Warranty_Start_Date__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Warranty_End_Date__c">
+                    </lightning-input-field>
+
+                </div>
+
+                <footer class="slds-modal__footer">
+
+                    <lightning-button
+                        label="Cancel"
+                        onclick={handleCancel}>
+                    </lightning-button>
+
+                    <lightning-button
+                        class="slds-m-left_small"
+                        label="Save"
+                        variant="brand"
+                        type="submit">
+                    </lightning-button>
+
+                </footer>
+
+            </lightning-record-edit-form>
+
+        </div>
+        
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
+
+                <!-- Products available -->
+                <template if:true={hasProducts}>
+                    <lightning-input
+    type="search"
+    label="Filter Products"
+    placeholder="Search product, serial number, or status"
+    value={productSearchKey}
+    onchange={handleProductSearch}>
+</lightning-input>
+
+<div class="slds-m-top_medium">
+    <c-custom-datatable
+        key-field="Id"
+        data={paginatedProducts}
+        columns={columns}
+        hide-checkbox-column
+        onrowaction={handleRowAction}>
+    </c-custom-datatable>
+</div>
+
+    
+
+    <!-- Pagination controls -->
+    <div class="slds-m-top_medium slds-align_absolute-center">
+
+        <lightning-button
+            label="Previous"
+            onclick={handlePrevious}
+            disabled={disablePrevious}>
+        </lightning-button>
+
+        <span class="slds-m-horizontal_medium">
+            Page {currentPage} of {totalPages}
+        </span>
+
+        <lightning-button
+            label="Next"
+            onclick={handleNext}
+            disabled={disableNext}>
+        </lightning-button>
+
+    </div>
+
+</template>
+                <!-- Customer selected but no products -->
+                <template if:false={hasProducts}>
+                    <p>No registered products found for this customer.</p>
+                </template>
+
+            </template>
+
+            <template if:true={hasError}>
+                <p class="slds-text-color_error">
+                    Unable to load customer products.
+                </p>
+            </template>
+
+            <template if:true={isLoading}>
+                <lightning-spinner
+                    alternative-text="Loading products"
+                    size="small">
+                </lightning-spinner>
+            </template>
+
+            <template if:true={showEditProductForm}>
+
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="edit-modal-heading"
+        class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+                <h2
+                    id="edit-modal-heading"
+                    class="slds-text-heading_medium">
+                    Edit Customer Product
+                </h2>
+            </header>
+
+            <lightning-record-edit-form
+                record-id={selectedCustomerProductId}
+                object-api-name="Customer_Product__c"
+                onsuccess={handleEditSuccess}
+                onerror={handleEditError}>
+
+                <div class="slds-modal__content slds-p-around_medium">
+
+                    <lightning-input-field
+                        field-name="Product_c__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Serial_Number__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Product_Status__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Purchase_Date__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Warranty_Start_Date__c">
+                    </lightning-input-field>
+
+                    <lightning-input-field
+                        field-name="Warranty_End_Date__c">
+                    </lightning-input-field>
+
+                </div>
+
+                <footer class="slds-modal__footer">
+
+                    <lightning-button
+                        label="Cancel"
+                        onclick={handleEditCancel}>
+                    </lightning-button>
+
+                    <lightning-button
+                        class="slds-m-left_small"
+                        label="Save"
+                        variant="brand"
+                        type="submit">
+                    </lightning-button>
+
+                </footer>
+
+            </lightning-record-edit-form>
+
+        </div>
+
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
+<!-- DELETE MODAL - separate -->
+<template if:true={showDeleteConfirmation}>
+
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="delete-modal-heading"
+        class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+                <h2
+                    id="delete-modal-heading"
+                    class="slds-text-heading_medium">
+                    Delete Customer Product
+                </h2>
+            </header>
+
+            <div class="slds-modal__content slds-p-around_medium">
+                <p>
+                    Are you sure you want to delete this Customer Product?
+                </p>
+            </div>
+
+            <footer class="slds-modal__footer">
+
+                <lightning-button
+                    label="Cancel"
+                    onclick={handleDeleteCancel}>
+                </lightning-button>
+
+                <lightning-button
+                    class="slds-m-left_small"
+                    label="Delete"
+                    variant="destructive"
+                    onclick={handleDeleteConfirm}>
+                </lightning-button>
+
+            </footer>
+
+        </div>
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
+        </div>
+
+        <template if:true={showServiceHistory}>
+
+    <section
+        role="dialog"
+        tabindex="-1"
+        aria-modal="true"
+        aria-labelledby="service-history-heading"
+        class="slds-modal slds-fade-in-open">
+
+        <div class="slds-modal__container">
+
+            <header class="slds-modal__header">
+                <h2
+                    id="service-history-heading"
+                    class="slds-text-heading_medium">
+                    Service History
+                </h2>
+            </header>
+
+            <div class="slds-modal__content slds-p-around_medium">
+
+                <template if:true={serviceHistoryLoading}>
+                    <lightning-spinner
+                        alternative-text="Loading service history"
+                        size="small">
+                    </lightning-spinner>
+                </template>
+
+                <template if:true={hasServiceRequests}>
+    <lightning-datatable
+        key-field="Id"
+        data={serviceRequests}
+        columns={serviceColumns}
+        hide-checkbox-column
+        onrowaction={handleServiceRowAction}>
+    </lightning-datatable>
+</template>
+
+<template if:false={hasServiceRequests}>
+    <p>No service history found for this product.</p>
+</template>
+
+
+            </div>
+
+            <footer class="slds-modal__footer">
+
+                <lightning-button
+                    label="Close"
+                    onclick={handleServiceHistoryClose}>
+                </lightning-button>
+
+            </footer>
+
+        </div>
+
+    </section>
+
+    <div class="slds-backdrop slds-backdrop_open"></div>
+
+</template>
+
+    </lightning-card>
+</template>

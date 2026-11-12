@@ -1,0 +1,253 @@
+<template>
+    <lightning-card
+        title="Manager Approval Workspace"
+        icon-name="standard:approval">
+
+        <div class="slds-p-around_medium">
+
+            <template if:true={pendingRequests.length}>
+                <template
+                    for:each={pendingRequests}
+                    for:item="request">
+
+                    <div
+                        key={request.id}
+                        class="slds-box slds-m-bottom_medium">
+
+                        <p>
+                            <strong>Service Request:</strong>
+                            {request.name}
+                        </p>
+
+                        <p>
+                            <strong>Status:</strong>
+                            {request.status}
+                        </p>
+
+                        <p>
+                            <strong>Approval Status:</strong>
+                            {request.approvalStatus}
+                        </p>
+
+                        <p>
+                            <strong>Customer Product:</strong>
+                            {request.customerProduct}
+                        </p>
+
+                        <p>
+                            <strong>Warranty:</strong>
+                            {request.warrantyStatus}
+                        </p>
+
+                        <p class="slds-m-top_small">
+                            <strong>Issue:</strong>
+                            {request.issueDescription}
+                        </p>
+
+                        <p class="slds-m-top_small">
+                            <strong>Work Comments:</strong>
+                            {request.workComments}
+                        </p>
+
+                        <template if:true={request.parts}>
+                            <div class="slds-m-top_medium">
+
+                                <h3 class="slds-text-title_bold">
+                                    Parts Used
+                                </h3>
+
+                                <template
+                                    for:each={request.parts}
+                                    for:item="part">
+
+                                    <div
+                                        key={part.id}
+                                        class="slds-box slds-m-top_small">
+
+                                        <p>
+                                            <strong>Part:</strong>
+                                            {part.name}
+                                        </p>
+
+                                        <p>
+                                            <strong>Quantity:</strong>
+                                            {part.quantity}
+                                        </p>
+
+                                        <p>
+                                            <strong>Unit Price:</strong>
+                                            <lightning-formatted-number
+                                                value={part.unitPrice}
+                                                format-style="currency"
+                                                currency-code="INR">
+                                            </lightning-formatted-number>
+                                        </p>
+
+                                        <p>
+                                            <strong>Total Cost:</strong>
+                                            <lightning-formatted-number
+                                                value={part.totalCost}
+                                                format-style="currency"
+                                                currency-code="INR">
+                                            </lightning-formatted-number>
+                                        </p>
+
+                                        <p>
+                                            <strong>Unlisted Part:</strong>
+                                            {part.unlisted}
+                                        </p>
+
+                                        <p>
+                                            <strong>Approval Required:</strong>
+                                            {part.approvalRequired}
+                                        </p>
+
+                                        <template if:true={part.description}>
+                                            <p>
+                                                <strong>Details:</strong>
+                                                {part.description}
+                                            </p>
+                                        </template>
+
+                                        <template if:true={part.approvalRequired}>
+
+                                            <p class="slds-m-top_small">
+                                                <strong>
+                                                    Part Approval Status:
+                                                </strong>
+                                                {part.partApprovalStatus}
+                                            </p>
+
+                                            <template
+                                                if:true={part.partApprovalComments}>
+
+                                                <p>
+                                                    <strong>
+                                                        Manager Comments:
+                                                    </strong>
+                                                    {part.partApprovalComments}
+                                                </p>
+
+                                            </template>
+
+                                            <template if:true={part.isPartPending}>
+                                                <div class="slds-m-top_small">
+
+                                                    <lightning-button
+                                                        label="Approve"
+                                                        variant="success"
+                                                        data-id={part.id}
+                                                        data-name={part.name}
+                                                        onclick={handlePartApprove}>
+                                                    </lightning-button>
+
+                                                    <lightning-button
+                                                        label="Reject"
+                                                        variant="destructive"
+                                                        data-id={part.id}
+                                                        data-name={part.name}
+                                                        onclick={handlePartReject}
+                                                        class="slds-m-left_small">
+                                                    </lightning-button>
+
+                                                </div>
+                                            </template>
+
+                                        </template>
+
+                                    </div>
+                                </template>
+
+                            </div>
+                        </template>
+
+                    </div>
+                </template>
+            </template>
+
+            <template if:false={pendingRequests.length}>
+                <template if:false={error}>
+                    <div class="slds-align_absolute-center slds-p-around_large">
+                        <p>No pending approvals are available.</p>
+                    </div>
+                </template>
+            </template>
+
+            <template if:true={error}>
+                <p class="slds-text-color_error">
+                    Unable to load pending approvals.
+                </p>
+            </template>
+
+        </div>
+    </lightning-card>
+
+    <!-- Part-level approval comments modal -->
+    <template if:true={showPartDecisionModal}>
+
+        <section
+            role="dialog"
+            tabindex="-1"
+            aria-modal="true"
+            aria-labelledby="part-decision-heading"
+            class="slds-modal slds-fade-in-open">
+
+            <div class="slds-modal__container">
+
+                <header class="slds-modal__header">
+
+                    <lightning-button-icon
+                        icon-name="utility:close"
+                        alternative-text="Close"
+                        title="Close"
+                        onclick={handleClosePartModal}
+                        class="slds-modal__close">
+                    </lightning-button-icon>
+
+                    <h2
+                        id="part-decision-heading"
+                        class="slds-text-heading_medium">
+                        {partModalTitle}
+                    </h2>
+
+                </header>
+
+                <div class="slds-modal__content slds-p-around_medium">
+
+                    <lightning-textarea
+                        label="Manager Comments"
+                        value={partApprovalComments}
+                        onchange={handlePartCommentsChange}>
+                    </lightning-textarea>
+
+                    <template if:true={isPartRejection}>
+                        <p class="slds-text-body_small slds-text-color_error slds-m-top_x-small">
+                            Comments are required when rejecting a part.
+                        </p>
+                    </template>
+
+                </div>
+
+                <footer class="slds-modal__footer">
+
+                    <lightning-button
+                        label="Cancel"
+                        onclick={handleClosePartModal}>
+                    </lightning-button>
+
+                    <lightning-button
+                        label={partConfirmLabel}
+                        variant={partConfirmVariant}
+                        onclick={handleConfirmPartDecision}
+                        class="slds-m-left_small">
+                    </lightning-button>
+
+                </footer>
+
+            </div>
+        </section>
+
+        <div class="slds-backdrop slds-backdrop_open"></div>
+
+    </template>
+</template>
